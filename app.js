@@ -1,5 +1,5 @@
 const express = require("express")
-const {getSheet, parseSheetsData} = require("./gsheets/gsheet")
+const {pullSheetsData, parseSheetsData} = require("./gsheets/gsheet")
 
 
 const app = express()
@@ -7,10 +7,10 @@ const app = express()
 app.use(express.json())
 
 app.get('/', async (req, res) => {
-    const {data} = await getSheet();
+    const {data} = await pullSheetsData();
     
-    let phonenames = parseSheetsData(data)
-    return res.json(phonenames)
+    let d = parseSheetsData(data)
+    return res.json(d)
 })
 
 module.exports = app

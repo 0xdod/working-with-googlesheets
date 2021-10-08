@@ -2,21 +2,7 @@ const GSheetReader = require("g-sheets-api");
 
 const { google } = require("googleapis");
 
-async function GetSheetData() {
-    const sheetId = "1F6BvjBRKMf6cVTzrb3O-4uORjnhHN0I6DC9jkuxQibo";
-
-    const apiKey = process.env.API_KEY;
-    const options = {
-        apiKey,
-        sheetId,
-        sheetNumber: 1,
-        sheetName: "IPHONES",
-        returnAllResults: true,
-    };
-    return await GSheetReader(options, console.log, console.log);
-}
-
-async function getSheet() {
+async function pullSheetsData() {
     const sheetId = "1F6BvjBRKMf6cVTzrb3O-4uORjnhHN0I6DC9jkuxQibo";
     const auth = process.env.API_KEY;
     const sheets = google.sheets({ version: "v4", auth });
@@ -31,37 +17,34 @@ function parseSheetsData(data) {
     let [buyRequest, sellRequest] = data.valueRanges;
     let brRows = buyRequest.values;
     let srRows = sellRequest.values;
-    // var ignore = [0, 1]
-    // name: 
-    // condition:
-    // storage_size:
-    // price: 
-    // }
-    var phoneNames = [];
-    var conditions = [];
-    var priceValues = [];
+    var phoneNameRowIndexes = [
+        2, 7, 12, 17, 21, 25, 29, 34, 39, 45, 51, 56, 61,
+    ];
 
-    const whatDeterminesPrice = ["Storage Size", "New", "A1", 'A2', 'B1', 'B2', 'C', 'C/B', 'C/D'] 
-    var phoneNameRows = [2, 7, 12, 17, 21, 25, 29, 34, 39, 45, 51, 56, 61];
-    var conditionRows = phoneNameRows.map( item => ++item)
-
-    for (let i of phoneNameRows) {
-        phoneNames.push(brRows[i]);
-    }
-
-    for (let i of conditionRows) {
-        if (whatDeterminesPrice.includes(brRows[i])) {
-            conditions.push(brRows[i])
-        }
-    }
-
-    phoneNameRows.forEach((item, index) => {
-        let nextPhoneRow = phoneNameRows[index+1]
-        for (let i = item+2; i < nextPhoneRow; ++i) {
-            priceValues.push(brRows[i])
-        }
-    })
-    return {phoneNames, conditions, priceValues}
+    var buyRequests = parseRequests(phoneNameRowIndexes, brRows);
+    var sellRequests = parseRequests(phoneNameRowIndexes, srRows);
+    return { buyRequests, sellRequests };
 }
 
-module.exports = { GetSheetData, getSheet, parseSheetsData };
+function parseRequests(phoneNameRowIndexes, requestsRows) {
+    var res = [];
+    phoneNameRowIndexes.forEach((item, index) => {
+        let nextPhoneRowIndex = phoneNameRowIndexes[index + 1];
+        let firstPriceRow = item + 2;
+        for (let i = firstPriceRow; i < nextPhoneRowIndex; ++i) {
+            var priceRow = requestsRows[i];
+            var storageSize = priceRow[1];
+            priceRow.slice(2).forEach((cell, ii) => {
+                var obj = {};
+                obj.storageSize = storageSize;
+                obj.name = requestsRows[item][0];
+                obj.price = cell;
+                obj.condition = requestsRows[item+1].slice(2)[ii];
+                res.push(obj);
+            });
+        }
+    });
+    return res;
+}
+
+module.exports = { pullSheetsData, parseSheetsData };
