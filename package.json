@@ -1,0 +1,14 @@
+{
+  "name": "bnsrequests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "damilola dolor <damiloladolor@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "g-sheets-api": "^2.1.2",
+    "googleapis": "^88.2.0",
+    "mongoose": "^6.0.9"
+  }
+}
