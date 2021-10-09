@@ -1,5 +1,3 @@
-const GSheetReader = require("g-sheets-api");
-
 const { google } = require("googleapis");
 
 async function pullSheetsData() {
@@ -47,4 +45,8 @@ function parseRequests(phoneNameRowIndexes, requestsRows) {
     return res;
 }
 
-module.exports = { pullSheetsData, parseSheetsData };
+async function getDataFromSheets() {
+    const {data} = await pullSheetsData()
+    return parseSheetsData(data)
+}
+module.exports = { getDataFromSheets };
