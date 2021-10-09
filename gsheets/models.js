@@ -9,5 +9,3 @@ const requestsSchema = new mongoose.Schema({
 
 exports.BuyRequest = mongoose.model("BuyRequest", requestsSchema)
 exports.SellRequest = mongoose.model("SellRequest", requestsSchema)
-
-

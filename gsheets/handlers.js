@@ -13,24 +13,30 @@ async function pullGsheets(req, res) {
 
 async function getRequest(req, res) {
     let request = req.query.r;
-    let {page, limit} = req.query
+    let { page, limit } = req.query;
     let response = null;
-    page = parseInt(page) || 1
-    limit = parseInt(limit) || 10
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
 
     switch (request.toLowerCase()) {
         case "buy":
-            response = await BuyRequest.find().limit(limit).skip(limit*page).exec();
+            response = await BuyRequest.find()
+                .limit(limit)
+                .skip(limit * page)
+                .exec();
             break;
         case "sell":
-            response = await SellRequest.find().limit(limit).skip(limit*page).exec();
+            response = await SellRequest.find()
+                .limit(limit)
+                .skip(limit * page)
+                .exec();
             break;
         default:
-            response = {
-                message: "specify a request (buy/sell) in the querystring",
-            };
-            return;
+            return (response = {
+                message: "specify a request (buy/sell) in the url query",
+            });
     }
+
     return res.json({
         success: true,
         message: `${request}Requests fetched from the database`,

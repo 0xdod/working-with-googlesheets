@@ -1,3 +1,5 @@
+"use strict";
+
 const { google } = require("googleapis");
 
 async function pullSheetsData() {
@@ -12,32 +14,38 @@ async function pullSheetsData() {
 }
 
 function parseSheetsData(data) {
-    let [buyRequest, sellRequest] = data.valueRanges;
-    let brRows = buyRequest.values;
-    let srRows = sellRequest.values;
-    var phoneNameRowIndexes = [
+    const buyReqRows = data.valueRanges[0].values;
+    const sellReqRows = data.valueRanges[1].values;
+    const phoneNameRowIndexes = [
         2, 7, 12, 17, 21, 25, 29, 34, 39, 45, 51, 56, 61,
     ];
 
-    var buyRequests = parseRequests(phoneNameRowIndexes, brRows);
-    var sellRequests = parseRequests(phoneNameRowIndexes, srRows);
+    const buyRequests = parseRequests(phoneNameRowIndexes, buyReqRows);
+    const sellRequests = parseRequests(phoneNameRowIndexes, sellReqRows);
     return { buyRequests, sellRequests };
 }
 
+// parseRequests builds an array of objects from the sheets data,
+// with each object representing a device with a name, condition, strorage size and price.
+// For every row that contains a phone name e.g Iphone XS,
+// the conditions and storage size are on the next row.
+// The rows after conditions till the next row containing a phone name are the prices.
+// Each price is affected by storage size and condition.
 function parseRequests(phoneNameRowIndexes, requestsRows) {
-    var res = [];
-    phoneNameRowIndexes.forEach((item, index) => {
-        let nextPhoneRowIndex = phoneNameRowIndexes[index + 1];
-        let firstPriceRow = item + 2;
-        for (let i = firstPriceRow; i < nextPhoneRowIndex; ++i) {
-            var priceRow = requestsRows[i];
-            var storageSize = priceRow[1];
-            priceRow.slice(2).forEach((cell, ii) => {
-                var obj = {};
+    const res = [];
+    phoneNameRowIndexes.forEach((pRowIndex, i) => {
+        const phoneName = requestsRows[pRowIndex][0];
+        const nextPhoneRowIndex = phoneNameRowIndexes[i + 1];
+        const firstPriceRow = pRowIndex + 2;
+        for (let j = firstPriceRow; j < nextPhoneRowIndex; ++j) {
+            const priceRow = requestsRows[j];
+            const storageSize = priceRow[1];
+            priceRow.slice(2).forEach((price, k) => {
+                const obj = {};
                 obj.storageSize = storageSize;
-                obj.name = requestsRows[item][0];
-                obj.price = cell;
-                obj.condition = requestsRows[item+1].slice(2)[ii];
+                obj.name = phoneName;
+                obj.price = price;
+                obj.condition = requestsRows[pRowIndex + 1].slice(2)[k];
                 res.push(obj);
             });
         }
@@ -46,7 +54,7 @@ function parseRequests(phoneNameRowIndexes, requestsRows) {
 }
 
 async function getDataFromSheets() {
-    const {data} = await pullSheetsData()
-    return parseSheetsData(data)
+    const { data } = await pullSheetsData();
+    return parseSheetsData(data);
 }
 module.exports = { getDataFromSheets };

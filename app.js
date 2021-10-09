@@ -1,5 +1,5 @@
 const express = require("express")
-const {pullGsheets, getRequest} = require("./gsheets/handlers")
+const {pullGsheets, getRequest} = require("./gsheets")
 
 const app = express()
 
